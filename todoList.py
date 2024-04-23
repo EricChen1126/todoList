@@ -30,18 +30,33 @@ def delete_task():
         messagebox.showinfo('錯誤', '請選擇要刪除的事項')
 
 def update_tasks():
-    message_box = messagebox.askyesno('變更', '您確定要更新待辦事項嗎?')
-    if message_box == True:
-        while(len(tasks) != 0):
-            tasks.pop()
-        the_cursor.execute('delete from tasks')
-        list_update()
+    try:
+        # 取得被選定的項目
+        selected_index = task_listbox.curselection()[0]
+        selected_task = tasks[selected_index]
+        # 取得輸入框中的新任務內容
+        task_string = task_field.get()
+        
+        if len(task_string) == 0:
+            messagebox.showinfo('錯誤', '任務欄不能為空')
+            return
+        
+        message_box = messagebox.askyesno('更新', f'您確定要將 "{selected_task}" 更新為 "{task_string}" 嗎？')
+        if message_box:
+            the_cursor.execute('update tasks set title = ? where title = ?', (task_string, selected_task))
+            tasks[selected_index] = task_string
+            list_update()
+            task_field.delete(0, 'end')
+    except IndexError:
+        messagebox.showinfo('錯誤', '請選擇要更新的事項')
 
 def clear_list():
     task_listbox.delete(0, 'end')
 
 def close():
     print(tasks)
+    the_connection.commit()
+    the_cursor.close()
     gui.destroy()
 
 def retrieve_database():
@@ -115,17 +130,17 @@ if __name__ == "__main__":
         width = 24,
         command = add_task
     )
+    update_button = ttk.Button(
+        functions_frame,
+        text = "更       新",
+        width = 24,
+        command = update_tasks
+    )
     del_button = ttk.Button(
         functions_frame,
         text = "刪       除",
         width = 24,
         command = delete_task
-    )
-    del_all_button = ttk.Button(
-        functions_frame,
-        text = "更       新",
-        width = 24,
-        command = update_tasks
     )
     exit_button = ttk.Button(
         functions_frame,
@@ -135,8 +150,8 @@ if __name__ == "__main__":
     )
 
     add_button.place(x = 30, y = 120)
-    del_button.place(x = 30, y = 160)
-    del_all_button.place(x = 30, y = 200)
+    update_button.place(x = 30, y = 160)
+    del_button.place(x = 30, y = 200)
     exit_button.place(x = 30, y = 240)
 
     task_listbox = tk.Listbox(
