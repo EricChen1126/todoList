@@ -40,13 +40,14 @@ def update_tasks():
         if len(task_string) == 0:
             messagebox.showinfo('錯誤', '任務欄不能為空')
             return
-        
         message_box = messagebox.askyesno('更新', f'您確定要將 "{selected_task}" 更新為 "{task_string}" 嗎？')
+
         if message_box:
             the_cursor.execute('update tasks set title = ? where title = ?', (task_string, selected_task))
             tasks[selected_index] = task_string
             list_update()
             task_field.delete(0, 'end')
+            
     except IndexError:
         messagebox.showinfo('錯誤', '請選擇要更新的事項')
 
